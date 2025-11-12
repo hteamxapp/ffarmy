@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HTeam — Quản lý Quân Đoàn VN WARRIOR</title>
+<link rel="preload" href="ffarmy.mp3" as="audio">
+
+<style>
+  :root{
+    --bg:#0b0b0b;
+    --panel:#121212;
+    --accent:#ffb100;
+    --accent-2:#ff6a00;
+    --muted:#9a9a9a;
+    --card:#141414;
+  }
+  *{box-sizing:border-box;font-family:Inter,"Poppins",Arial,sans-serif}
+  html,body{margin:0;background:linear-gradient(180deg,var(--bg),#070707);color:#fff;height:100%}
+  a{color:inherit}
+
+  /* Intro video */
+  #intro-screen{
+    position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;
+  }
+  #intro-video{width:100%;height:100%;object-fit:cover}
+  #skip-btn{
+    position:absolute;bottom:24px;right:24px;appearance:none;border:0;padding:10px 16px;border-radius:999px;
+    background:linear-gradient(90deg,#ff6a00,#ffb100);color:#111;font-weight:700;cursor:pointer;font-size:16px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.5);display:none;
+  }
+
+  /* Topbar */
+  .topbar{height:68px;display:flex;align-items:center;gap:14px;padding:0 18px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-bottom:1px solid rgba(255,255,255,0.03)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .logo{width:46px;height:46px;border-radius:8px;background:linear-gradient(45deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:900;color:#111}
+  .brand h1{font-size:18px;margin:0;font-weight:700}
+
+  /* Container */
+  .container{max-width:1100px;margin:18px auto;padding:0 16px}
+
+  /* Banner carousel */
+  .banner-container{position:relative;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+  .banner-slide{display:none}
+  .banner-slide img{width:100%;height:360px;object-fit:cover;display:block}
+  .banner-controls{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:8px;pointer-events:none}
+  .banner-btn{pointer-events:auto;background:rgba(0,0,0,0.35);border:0;color:#fff;padding:10px;border-radius:50%;cursor:pointer;font-size:18px}
+  .banner-dots{position:absolute;bottom:12px;left:0;right:0;text-align:center}
+  .dot{display:inline-block;width:10px;height:10px;margin:0 6px;background:rgba(255,255,255,0.35);border-radius:50%;cursor:pointer}
+  .dot.active{background:var(--accent)}
+
+  /* Modules */
+  .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+  .module{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,0.03)}
+  .module h3{margin:0 0 12px;text-align:center;color:var(--accent)}
+  .services-list{display:grid;gap:10px}
+  .service-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,0.02)}
+  .service-item small{display:block;color:var(--muted);margin-top:6px}
+
+  /* Top5 */
+  .top5-list{display:grid;gap:8px}
+  .top-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.02)}
+  .pos{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#111}
+  .pos.rank1{background:linear-gradient(90deg,#ffd94d,#ffb100)}
+  .pos.rank2{background:linear-gradient(90deg,#c9c9c9,#9a9a9a)}
+  .pos.rank3{background:linear-gradient(90deg,#b06b2a,#ff6a00)}
+  .pos.rank4{background:#666}
+  .pos.rank5{background:#555}
+
+  /* Honors */
+  .honors{display:flex;gap:10px;flex-wrap:wrap}
+  .honor-card{flex:1;min-width:160px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.03)}
+
+  /* Form */
+  form .row{display:flex;gap:8px;margin-bottom:8px}
+  input[type="text"],input[type="email"]{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#fff}
+  .submit{padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent-2),var(--accent));border:0;color:#111;font-weight:800;cursor:pointer}
+
+  /* Audio enable */
+  #audio-enable{position:fixed;right:18px;bottom:18px;padding:10px 12px;border-radius:10px;background:linear-gradient(90deg,var(--accent-2),var(--accent));border:0;color:#111;font-weight:800;box-shadow:0 8px 20px rgba(0,0,0,0.6);display:none;z-index:999}
+
+  @media(max-width:800px){
+    .banner-slide img{height:200px}
+    .topbar h1{font-size:16px}
+    .honors{flex-direction:column}
+  }
+</style>
+</head>
+
+<body>
+<!-- Intro -->
+<div id="intro-screen">
+  <video id="intro-video" autoplay muted playsinline>
+    <source src="intro.mp4" type="video/mp4">
+  </video>
+  <button id="skip-btn">Bỏ qua</button>
+</div>
+
+<header class="topbar" id="main-header" style="display:none">
+  <div class="brand">
+    <div class="logo">HT</div>
+    <h1>HTeam — Quản lý Quân Đoàn VN WARRIOR</h1>
+  </div>
+</header>
+
+<main class="container" id="main-content" style="display:none">
+  <div class="banner-container" id="banner">
+    <div class="banner-slide"><img src="banner1.png" alt="Banner 1"></div>
+    <div class="banner-slide"><img src="banner2.png" alt="Banner 2"></div>
+    <div class="banner-slide"><img src="banner3.png" alt="Banner 3"></div>
+    <div class="banner-controls">
+      <button class="banner-btn" id="prevBtn">&#10094;</button>
+      <button class="banner-btn" id="nextBtn">&#10095;</button>
+    </div>
+    <div class="banner-dots" id="bannerDots"></div>
+  </div>
+
+  <div class="grid">
+    <section class="module" id="module-services">
+      <h3>📦 Dịch vụ Free Fire</h3>
+      <div id="servicesList" class="services-list">Đang tải...</div>
+    </section>
+
+    <section class="module" id="module-san-the">
+      <h3>🎯 Săn thẻ Garena</h3>
+      <form id="formSanThe">
+        <div class="row">
+          <input id="st-name" type="text" placeholder="Họ tên / Nick" required>
+          <input id="st-gmail" type="email" placeholder="Gmail (theo yêu cầu)" required>
+        </div>
+        <div class="row">
+          <input id="st-fb" type="text" placeholder="Facebook (link hoặc nick)">
+          <input id="st-zalo" type="text" placeholder="Zalo (số hoặc nick)">
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="submit" type="submit">Gửi đăng ký</button>
+          <div id="sanTheMsg" style="color:var(--accent);font-weight:700"></div>
+        </div>
+      </form>
+    </section>
+
+    <section class="module" id="module-race">
+      <h3>🏁 Đua top nhận thưởng — Top 5</h3>
+      <div id="top5List" class="top5-list">Đang tải...</div>
+    </section>
+
+    <section class="module" id="module-honors">
+      <h3>Vinh danh 🏆</h3>
+      <div id="honorsBox" class="honors">Đang tải...</div>
+    </section>
+  </div>
+
+  <div style="text-align:center;margin-top:18px;color:var(--muted)">HTeam ©2025</div>
+</main>
+
+<audio id="bg-audio" loop src="ffarmy.mp3"></audio>
+<button id="audio-enable" title="Bật nhạc">BẬT NHẠC</button>
+
+<script>
+const SHEETDB = 'https://sheetdb.io/api/v1/nremr9vy0ep83';
+const introScreen = document.getElementById('intro-screen');
+const introVideo = document.getElementById('intro-video');
+const skipBtn = document.getElementById('skip-btn');
+const mainHeader = document.getElementById('main-header');
+const mainContent = document.getElementById('main-content');
+const bgAudio = document.getElementById('bg-audio');
+const audioEnableBtn = document.getElementById('audio-enable');
+
+let canSkip=false;let timer;
+function startTimer(){
+  let t=5;
+  timer=setInterval(()=>{
+    if(t<=0){clearInterval(timer);canSkip=true;skipBtn.textContent='Bỏ qua';}
+    else skipBtn.textContent=`Bỏ qua (${t--})`;
+    skipBtn.style.display='inline-block';
+  },1000);
+}
+startTimer();
+function endIntro(){
+  if(introScreen.style.display==='none')return;
+  introScreen.style.display='none';
+  mainHeader.style.display='flex';
+  mainContent.style.display='block';
+  bgAudio.play().then(()=>audioEnableBtn.style.display='none').catch(()=>audioEnableBtn.style.display='block');
+}
+skipBtn.onclick=()=>{if(canSkip)endIntro();}
+introVideo.onended=endIntro;
+introScreen.onclick=()=>{if(canSkip)endIntro();}
+setTimeout(()=>{if(introScreen.style.display!=='none'){canSkip=true;endIntro();}},12000);
+audioEnableBtn.onclick=()=>bgAudio.play().then(()=>audioEnableBtn.style.display='none');
+
+/* Banner */
+const slides=[...document.querySelectorAll('.banner-slide')];
+const dotsBox=document.getElementById('bannerDots');
+let idx=0,timerSlide;
+function showSlide(i){
+  idx=(i+slides.length)%slides.length;
+  slides.forEach(s=>s.style.display='none');
+  slides[idx].style.display='block';
+  [...dotsBox.children].forEach((d,j)=>d.classList.toggle('active',j===idx));
+  clearTimeout(timerSlide);timerSlide=setTimeout(()=>showSlide(idx+1),5000);
+}
+slides.forEach((_,i)=>{let d=document.createElement('span');d.className='dot';d.onclick=()=>showSlide(i);dotsBox.appendChild(d);});
+showSlide(0);
+document.getElementById('prevBtn').onclick=()=>showSlide(idx-1);
+document.getElementById('nextBtn').onclick=()=>showSlide(idx+1);
+
+/* Data load */
+async function loadServices(){
+  const box=document.getElementById('servicesList');
+  try{
+    const r=await fetch(SHEETDB+'/services');const d=await r.json();
+    box.innerHTML=d.map(x=>`<div class="service-item"><div><b>${x.title||''}</b><small>${x.description||''}</small></div><div>${x.price||''}</div></div>`).join('')||'<em>Không có dịch vụ.</em>';
+  }catch{box.innerHTML='<em>Lỗi tải dữ liệu.</em>';}
+}
+async function loadTop5(){
+  const box=document.getElementById('top5List');
+  try{
+    const r=await fetch(SHEETDB+'/races');const d=await r.json();
+    const sum={};d.forEach(x=>{let n=x.name||'---';sum[n]=(sum[n]||0)+(+x.points||0)});
+    const arr=Object.entries(sum).map(([name,points])=>({name,points})).sort((a,b)=>b.points-a.points).slice(0,5);
+    box.innerHTML=arr.map((p,i)=>`<div class="top-item"><div style="display:flex;align-items:center;gap:12px"><div class="pos rank${i+1}">${i+1}</div><div><b>${p.name}</b><div style="font-size:13px;color:var(--muted)">Tổng điểm: ${p.points}</div></div></div><b style="color:var(--accent)">${p.points}</b></div>`).join('');
+  }catch{box.innerHTML='<em>Lỗi tải Top5.</em>';}
+}
+async function loadHonors(){
+  const box=document.getElementById('honorsBox');
+  try{
+    const r=await fetch(SHEETDB+'/honors');const d=await r.json();
+    const arr=d.slice(0,3);
+    box.innerHTML=arr.map(x=>`<div class="honor-card"><div style="font-weight:900;color:var(--accent)">${x.name||''}</div><div style="font-size:13px;color:var(--muted)">${x.reason||''}</div></div>`).join('');
+  }catch{box.innerHTML='<em>Lỗi tải vinh danh.</em>';}
+}
+loadServices();loadTop5();loadHonors();
+
+/* Form Săn thẻ */
+document.getElementById('formSanThe').onsubmit=async e=>{
+  e.preventDefault();
+  const btn=e.target.querySelector('button');btn.disabled=true;
+  const msg=document.getElementById('sanTheMsg');
+  msg.textContent='Đang gửi...';
+  const data={timestamp:new Date().toISOString(),name:st-name.value,gmail:st-gmail.value,fb:st-fb.value,zalo:st-zalo.value,module:'san the'};
+  try{
+    await fetch(SHEETDB+'/registrations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data})});
+    msg.textContent='✅ Gửi thành công!';e.target.reset();
+  }catch{msg.textContent='❌ Lỗi gửi!';}
+  btn.disabled=false;setTimeout(()=>msg.textContent='',3000);
+};
+</script>
+</body>
+  </html>
